@@ -1,0 +1,108 @@
+
+R version 3.1.3 (2015-03-09) -- "Smooth Sidewalk"
+Copyright (C) 2015 The R Foundation for Statistical Computing
+Platform: x86_64-apple-darwin10.8.0 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> # cluster load
+> library(plyr)
+> library(seqinr)
+Loading required package: ade4
+
+Attaching package: ‘seqinr’
+
+The following object is masked from ‘package:plyr’:
+
+    count
+
+> library(ggplot2)
+> 
+> #Open the cluster result files
+> clusterAnalysis <- read.table(file = "/Users/yperez/work/ms_work/cluster-work/cluster_analysis_150407.contaminant.csv", sep ="\t", header = TRUE, fill = TRUE, na.strings=NULL)
+> save(clusterAnalysis, file="clusterAnalysis.rda")
+> 
+> #Order thr results by cluster Id
+> #arrange(clusterAnalysis, desc(PEP_SIMILARITY_SECOND))
+> #save(clusterAnalysis, file= "clusterAnalysis.rda")
+> 
+> pdf("plots.pdf")
+> 
+> # Get the number of clusters with one, two, three and four peptides.
+> numberPep <- length(clusterAnalysis$CLUSTER_ID[clusterAnalysis$CLUSTER_ID != "NA"])
+> numberSecond <- length(which(clusterAnalysis$PEP_SEQ_SECOND != "NA"))
+> numberThird <- length(which(clusterAnalysis$PEP_SEQ_THIRD != "NA"))
+> numberFour <- length(which(clusterAnalysis$PEP_SEQ_FOUR != "NA"))
+> values <- c(numberPep, numberSecond, numberThird, numberFour)
+> colsVal <- c("pep", "sec","third","four or more")
+> df = data.frame(values, colsVal)
+> colnames(df) <- c("values", "cols")
+> 
+> # plot
+> # Very basic bar graph
+> ggplot(data=df, aes(y=df$values, x = df$cols), fill = c("#DA5724", "#74D944", "#CE50CA", "#3F4921")) + geom_bar(stat = "identity") + ylab("Clusters Count") + xlab("Number of Peptides") + ggtitle("Number of Peptide Constaminants")
+> 
+> #contaminant aanalysis
+> pepNotSecYes <- subset(clusterAnalysis, clusterAnalysis$PEP_CONTAMINANT == "NA")
+> pepNotSecYes <- subset(pepNotSecYes, pepNotSecYes$PEP_CONTAMINANT_SECOND != "NA")
+> pepNotSecYes <- nrow(pepNotSecYes)
+> 
+> pepNotThirdYes <- subset(clusterAnalysis, clusterAnalysis$PEP_CONTAMINANT == "NA")
+> pepNotThirdYes <- subset(pepNotThirdYes, pepNotThirdYes$PEP_CONTAMINANT_THIRD != "NA")
+> pepNotThirdYes <- nrow(pepNotThirdYes)
+> 
+> pepNotFourYes <- subset(clusterAnalysis, clusterAnalysis$PEP_CONTAMINANT == "NA")
+> pepNotFourYes <- subset(pepNotFourYes, pepNotFourYes$PEP_CONTAMINANT_FOUR != "NA")
+> pepNotFourYes <- nrow(pepNotFourYes)
+> 
+> pepContaminat <- subset(clusterAnalysis, clusterAnalysis$PEP_CONTAMINANT != "NA")
+> pepContaminat <- nrow(pepContaminat)
+> 
+> values <- c(pepNotSecYes, pepNotThirdYes, pepNotFourYes, pepContaminat)
+> colsVal <- c("PepN/SecPeY", "PepN/ThirdPeY","PepN/FourPeY","PeY")
+> df = data.frame(values, colsVal)
+> colnames(df) <- c("values", "cols")
+> ggplot(data=df, aes(y=df$values, x = df$cols)) + geom_bar(stat = "identity") + ylab("Clusters Count") + xlab("Contaminant Combination") + ggtitle("Contaminants vs Peptide Rank")
+> 
+> pepSecondSimilarity <- subset(clusterAnalysis, clusterAnalysis$PEP_SIMILARITY_SECOND != "NA")
+> pepSecondSimilarity <- subset(pepSecondSimilarity, pepSecondSimilarity$PEP_SIMILARITY_SECOND != "")
+> 
+> 
+> b <- seq(from = -1, to=1,by = 0.4)
+> ggplot(pepSecondSimilarity, aes(x=pepSecondSimilarity$PEP_SIMILARITY_SECOND)) +  geom_histogram() + scale_x_discrete(breaks = b) + ylim(0,1000) + ylab("Second best Peptides Count") + xlab("Aligmenent Score") + ggtitle("Similarity Score histogram for Second best Hit")
+> 
+> pepThirdSimilarity <- subset(clusterAnalysis, clusterAnalysis$PEP_SIMILARITY_THIRD != "NA")
+> pepThirdSimilarity <- subset(pepThirdSimilarity, pepThirdSimilarity$PEP_SIMILARITY_THIRD != "")
+> 
+> 
+> b <- seq(from = -1, to=1,by = 0.4)
+> ggplot(pepThirdSimilarity, aes(x=pepThirdSimilarity$PEP_SIMILARITY_THIRD)) +  geom_histogram() + scale_x_discrete(breaks = b) + ylim(0,500) + ylab("Third best Peptides Count") + xlab("Aligmenent Score") + ggtitle("Similarity Score histogram for Third best Hit")
+> 
+> pepFourSimilarity <- subset(clusterAnalysis, clusterAnalysis$PEP_SIMILARITY_FOUR != "NA")
+> pepFourSimilarity <- subset(pepFourSimilarity, pepFourSimilarity$PEP_SIMILARITY_FOUR != "")
+> 
+> 
+> b <- seq(from = -1, to=1,by = 0.4)
+> ggplot(pepFourSimilarity, aes(x=pepFourSimilarity$PEP_SIMILARITY_FOUR)) +  geom_histogram() + ylab("Four best Peptides Count") + xlab("Aligmenent Score") + ylim(0,500) + ggtitle("Similarity Score histogram for Four best Hit")
+> 
+> dev.off()
+null device 
+          1 
+> 
+> proc.time()
+   user  system elapsed 
+195.322   6.156 213.802 
